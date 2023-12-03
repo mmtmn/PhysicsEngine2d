@@ -8,8 +8,10 @@ using namespace std;
 class Vector2D {
 public:
     double x, y;
+    double vx, vy; // Velocity components
 
-    Vector2D(double x = 0.0, double y = 0.0) : x(x), y(y) {}
+    Vector2D(double x = 0.0, double y = 0.0, double vx = 0.0, double vy = 0.0)
+        : x(x), y(y), vx(vx), vy(vy) {}
 
     // Addition
     Vector2D operator+(const Vector2D& v) const {
@@ -66,6 +68,19 @@ public:
         return x == v.x && y == v.y;
     }
 
+    // Update method for motion under gravity
+    void update(double deltaTime, const Vector2D& acceleration) {
+        vx += acceleration.x * deltaTime;
+        vy += acceleration.y * deltaTime;
+        x += vx * deltaTime + 0.5 * acceleration.x * deltaTime * deltaTime;
+        y += vy * deltaTime + 0.5 * acceleration.y * deltaTime * deltaTime;
+    }
+
+    // Method for bouncing on collision
+    void bounce(double elasticity = 0.7) {
+        vy = -vy * elasticity;
+    }
+
     // Inequality check
     bool operator!=(const Vector2D& v) const {
         return x != v.x || y != v.y;
@@ -92,6 +107,7 @@ int main() {
     const float borderThickness = 10.0f;
     const sf::Vector2f borderPosition(20, 20);
     const sf::Vector2f borderSize(760, 560);
+    const Vector2D gravity(0, 980); // Adjust as needed
 
     // Create border
     sf::RectangleShape border(borderSize);
@@ -124,6 +140,12 @@ int main() {
             }
         }
 
+        // Apply gravity and update positions
+        v1.update(deltaTime.asSeconds(), gravity);
+        v2.update(deltaTime.asSeconds(), gravity);
+
+
+
         // Enhanced user input handling with delta time
         float moveSpeed = 100.0f; // Speed in pixels per second
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
@@ -151,6 +173,12 @@ int main() {
         if (v1.y - radius < minY) v1.y = minY + radius;
         if (v1.x + radius > maxX) v1.x = maxX - radius;
         if (v1.y + radius > maxY) v1.y = maxY - radius;
+
+        if (checkCollision(v1, v2, radius, radius)) {
+            // Apply bounce
+            v1.bounce();
+            v2.bounce();
+        }
 
         // Clear screen
         window.clear();

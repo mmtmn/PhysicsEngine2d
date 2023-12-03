@@ -1,2 +1,5 @@
 # PhysicsEngine2d
-A simple 2d physics engine in C++
+make sure to install lsfml and gcc
+
+How to compile:
+g++ main.cpp -o main -lsfml-graphics -lsfml-window -lsfml-system

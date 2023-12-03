@@ -88,6 +88,18 @@ int main() {
     // Create the main window
     sf::RenderWindow window(sf::VideoMode(800, 600), "Physics Engine with Graphics");
 
+    // Define border dimensions
+    const float borderThickness = 10.0f;
+    const sf::Vector2f borderPosition(20, 20);
+    const sf::Vector2f borderSize(760, 560);
+
+    // Create border
+    sf::RectangleShape border(borderSize);
+    border.setPosition(borderPosition);
+    border.setFillColor(sf::Color::Transparent);
+    border.setOutlineThickness(borderThickness);
+    border.setOutlineColor(sf::Color::White);
+
     // Create two circles representing our vectors
     sf::CircleShape circle1(30); // Radius 30
     circle1.setFillColor(sf::Color::Red);
@@ -107,7 +119,6 @@ int main() {
         // Process events
         sf::Event event;
         while (window.pollEvent(event)) {
-            // Close window: exit
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
@@ -128,22 +139,30 @@ int main() {
             v1.y += moveSpeed * deltaTime.asSeconds();
         }
 
-        // Boundary checking
+        // Boundary checking with border adjustment
         float radius = 30.0f; // Circle radius
-        if (v1.x < radius) v1.x = radius;
-        if (v1.y < radius) v1.y = radius;
-        if (v1.x > 800 - radius) v1.x = 800 - radius; // Window width
-        if (v1.y > 600 - radius) v1.y = 600 - radius; // Window height
+
+        float minX = borderPosition.x + radius + borderThickness;
+        float maxX = borderPosition.x + borderSize.x - radius - borderThickness;
+        float minY = borderPosition.y + radius + borderThickness;
+        float maxY = borderPosition.y + borderSize.y - radius - borderThickness;
+
+        if (v1.x - radius < minX) v1.x = minX + radius;
+        if (v1.y - radius < minY) v1.y = minY + radius;
+        if (v1.x + radius > maxX) v1.x = maxX - radius;
+        if (v1.y + radius > maxY) v1.y = maxY - radius;
 
         // Clear screen
         window.clear();
 
+        window.draw(border);
+
         // Update positions
-        circle1.setPosition(v1.x, v1.y);
-        circle2.setPosition(v2.x, v2.y);
+        circle1.setPosition(v1.x - radius, v1.y - radius); // Adjusting for the circle's top-left corner position
+        circle2.setPosition(v2.x - radius, v2.y - radius); // Adjusting for the circle's top-left corner position
 
         // Check collision
-        if (checkCollision(v1, v2, 30, 30)) {
+        if (checkCollision(v1, v2, radius, radius)) {
             circle1.setFillColor(sf::Color::Green);
             circle2.setFillColor(sf::Color::Green);
         } else {
